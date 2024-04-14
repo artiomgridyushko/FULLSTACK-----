@@ -18,7 +18,7 @@ app.post('/login', (req, res) => {
     const { username, password } = req.body;
 
     // Поиск пользователя в базе данных по логину и паролю
-    const sql = 'SELECT * FROM users WHERE username = ? AND password = ?';
+    const sql = 'SELECT id, username, password FROM users WHERE username = ? AND password = ?';
     console.log('SQL-запрос:', sql, 'с параметрами:', [username, password]);
 
     db.get(sql, [username, password], (err, row) => {
@@ -35,9 +35,83 @@ app.post('/login', (req, res) => {
         }
 
         console.log('Успешная аутентификация:', row);
-        res.status(200).send('Успешная аутентификация');
+
+        // Отправляем статус 200 и данные пользователя в виде JSON для успешной аутентификации
+        return res.status(200).json({ id: row.id, username: row.username, password: row.password });
     });
 });
+
+
+// Обработчик GET-запроса для получения данных о клиентах для определенного пользователя
+// app.get('/user/:userId/user_clients', (req, res) => {
+//     const userId = req.params.userId;
+
+//     // Поиск client_id, принадлежащих данному userId
+//     const userClientSql = 'SELECT client_id FROM user_clients WHERE user_id = ?';
+//     db.all(userClientSql, [userId], (err, userClientRows) => {
+//         if (err) {
+//             console.error('Ошибка при выполнении запроса:', err);
+//             return res.status(500).send('Ошибка сервера');
+//         }
+
+//         if (!userClientRows || userClientRows.length === 0) {
+//             // Если не найдены client_id для данного пользователя, возвращаем пустой результат
+//             console.log('Клиенты не найдены для пользователя с ID:', userId);
+//             return res.status(404).send('Клиенты не найдены');
+//         }
+
+//         // Получаем список client_id
+//         const clientIds = userClientRows.map(row => row.client_id);
+
+//         // Поиск клиентов по найденным account_number
+//         const clientSql = 'SELECT * FROM clients WHERE account_number IN (?)';
+//         console.log('SQL-запрос для получения клиентов по account_number:', clientIds);
+
+//         db.all(clientSql, [clientIds], (err, clientRows) => {
+//             if (err) {
+//                 console.error('Ошибка при выполнении запроса:', err);
+//                 return res.status(500).send('Ошибка сервера');
+//             }
+
+//             // Выводим результат запроса для отладки
+//             console.log('Результат запроса:', clientRows);
+
+//             // Отправляем данные о клиентах в виде JSON
+//             return res.status(200).json(clientRows);
+//         });
+//     });
+// });
+
+
+app.get('/user/:userId/user_clients', (req, res) => {
+    const userId = req.params.userId;
+
+    const sql = `
+        SELECT c.* 
+        FROM user_clients uc
+        JOIN clients c ON uc.client_id = c.account_number
+        WHERE uc.user_id = ?
+    `;
+
+    db.all(sql, [userId], (err, clientRows) => {
+        if (err) {
+            console.error('Ошибка при выполнении запроса:', err);
+            return res.status(500).send('Ошибка сервера');
+        }
+
+        if (!clientRows || clientRows.length === 0) {
+            console.log('Клиенты не найдены для пользователя с ID:', userId);
+            return res.status(404).send('Клиенты не найдены');
+        }
+
+        // Отправляем данные о клиентах в виде JSON
+        return res.status(200).json(clientRows);
+    });
+});
+
+
+
+
 
 // Запуск сервера на порту 3000
 app.listen(PORT, () => {

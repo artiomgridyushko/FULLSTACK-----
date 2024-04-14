@@ -1,13 +1,13 @@
 const sqlite3 = require('sqlite3').verbose();
 
 // Подключение к базе данных SQLite
-const db = new sqlite3.Database('bd.db');
+const db = new sqlite3.Database('bd1.db');
 
 // Создание таблицы clients
 db.serialize(() => {
     db.run(`
         CREATE TABLE IF NOT EXISTS clients (
-            account_number INTEGER PRIMARY KEY,
+            client_id INTEGER PRIMARY KEY,
             last_name TEXT NOT NULL,
             first_name TEXT NOT NULL,
             middle_name TEXT,
@@ -32,7 +32,7 @@ db.serialize(() => {
         [10, 'Сидорова', 'Сидора', 'Сидоровна', '1989-12-08', '012345678901', 'Алексеева Александра Алексеевна', 'В работе']
     ];
 
-    const insertClientStmt = db.prepare('INSERT INTO clients (account_number, last_name, first_name, middle_name, birth_date, INN, responsible_person_name, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+    const insertClientStmt = db.prepare('INSERT INTO clients (client_id, last_name, first_name, middle_name, birth_date, INN, responsible_person_name, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
     clientsData.forEach(client => {
         insertClientStmt.run(client, err => {
             if (err) console.error('Ошибка вставки данных в таблицу clients:', err);
@@ -54,7 +54,7 @@ db.serialize(() => {
 
     // Вставка данных в таблицу users
     const usersData = [
-        ['Иванов Иван Иванович', 'ivan', 'password1'],
+        ['Иванов Иван Иванович', '2', '2'],
         ['Петров Петр Петрович', 'petr', 'password2'],
         ['Артём', '1', '1']
     ];
