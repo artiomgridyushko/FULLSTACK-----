@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorMessage = document.getElementById('error-message');
 
     form.addEventListener('submit', function(event) {
-        event.preventDefault(); // Предотвращаем отправку формы по умолчанию
+        event.preventDefault(); 
 
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
@@ -38,8 +38,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (response.status === 200) {
                 response.json().then(userData => {
                     const userId = userData.id;
-                    localStorage.setItem('user', JSON.stringify({ id: userId, username: username, password: password }));
-                    window.location.href = '/hello.html'; // Перенаправляем на страницу приветствия
+                    const fullname = userData.full_name; 
+                    const userDataWithFullName = {
+                        id: userId,
+                        username: username,
+                        password: password,
+                        full_name: fullname
+                    };
+                    
+                    localStorage.setItem('user', JSON.stringify(userDataWithFullName));
+                    window.location.href = '/table.html'; 
                 });
             } else {
                 errorMessage.style.display = 'block';

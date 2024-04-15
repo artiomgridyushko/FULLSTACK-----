@@ -1,9 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 
-// Подключение к базе данных SQLite
 const db = new sqlite3.Database('bd.db');
 
-// Создание таблицы clients
 db.serialize(() => {
     db.run(`
         CREATE TABLE IF NOT EXISTS clients (
@@ -18,7 +16,6 @@ db.serialize(() => {
         )
     `);
 
-    // Вставка данных в таблицу clients
     const clientsData = [
         [1, 'Иванов', 'Иван', 'Иванович', '1990-05-15', '123456789012', 'Петров Петр Петрович', 'В работе'],
         [2, 'Петров', 'Петр', 'Петрович', '1985-08-20', '234567890123', 'Сидоров Сидор Сидорович', 'В работе'],
@@ -42,7 +39,6 @@ db.serialize(() => {
 
     console.log('Таблица clients создана и заполнена данными');
 
-    // Создание таблицы users
     db.run(`
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY,
@@ -52,7 +48,6 @@ db.serialize(() => {
         )
     `);
 
-    // Вставка данных в таблицу users
     const usersData = [
         ['Иванов Иван Иванович', 'ivan', 'password1'],
         ['Петров Петр Петрович', 'petr', 'password2'],
@@ -69,7 +64,6 @@ db.serialize(() => {
 
     console.log('Таблица users создана и заполнена данными');
 
-    // Создание таблицы user_clients
     db.run(`
         CREATE TABLE IF NOT EXISTS user_clients (
             id INTEGER PRIMARY KEY,
@@ -80,7 +74,6 @@ db.serialize(() => {
         )
     `);
 
-    // Вставка данных в таблицу user_clients для пользователя с идентификатором 1 (Иванов)
     const userClientsDataIvanov = [
         [1, 1],
         [1, 2],
@@ -96,7 +89,6 @@ db.serialize(() => {
         });
     });
 
-    // Вставка данных в таблицу user_clients для пользователя с идентификатором 2 (Петров)
     const userClientsDataPetrov = [
         [2, 6],
         [2, 7],
@@ -111,9 +103,8 @@ db.serialize(() => {
         });
     });
 
-    insertUserClientStmt.finalize(); // Финализация только здесь
+    insertUserClientStmt.finalize(); 
     console.log('Таблица user_clients создана и заполнена данными');
 });
 
-// Закрытие соединения с базой данных после выполнения запросов
 db.close();

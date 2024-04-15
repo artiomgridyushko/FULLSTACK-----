@@ -1,65 +1,114 @@
-const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
-const cors = require('cors');
+document.addEventListener('DOMContentLoaded', function() {
+    const userId = JSON.parse(localStorage.getItem('user')).id;
+    const fullName = JSON.parse(localStorage.getItem('user')).full_name;
 
-const app = express();
-const PORT = 3001;
-
-// Подключение к базе данных SQLite
-const db = new sqlite3.Database('bd.db');
-
-// Middleware для обработки данных из формы и JSON
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(cors());
-
-// Обработчик GET-запроса для получения данных о клиентах для определенного пользователя
-app.get('/user/:userId/user_clients', (req, res) => {
-    const userId = req.params.userId;
-
-    // Поиск client_id, принадлежащих данному userId
-    const userClientSql = 'SELECT client_id FROM user_clients WHERE user_id = ?';
-    db.all(userClientSql, [userId], (err, userClientRows) => {
-        if (err) {
-            console.error('Ошибка при выполнении запроса:', err);
-            return res.status(500).send('Ошибка сервера');
-        }
-
-        if (!userClientRows || userClientRows.length === 0) {
-            // Если не найдены client_id для данного пользователя, возвращаем пустой результат
-            console.log('Клиенты не найдены для пользователя с ID:', userId);
-            return res.status(404).send('Клиенты не найдены');
-        }
-
-        // Получаем список client_id
-        const clientIds = userClientRows.map(row => row.client_id);
-
-        // Поиск клиентов по найденным client_id
-        const clientSql = 'SELECT * FROM clients WHERE account_number IN (?)';
-        console.log('SQL-запрос для получения клиентов по client_id:', clientIds);
-
-        db.all(clientSql, [clientIds], (err, clientRows) => {
-            if (err) {
-                console.error('Ошибка при выполнении запроса:', err);
-                return res.status(500).send('Ошибка сервера');
+    fetch(`http://localhost:3000/user/${userId}/user_clients`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка получения данных о клиентах');
             }
+            return response.json();
+        })
+        .then(clientData => {
+            const helloForm = document.createElement('div');
+            helloForm.innerHTML = `
+                <form>
+                    <h1>Приветствуем, ${fullName}</h1> <!-- Добавляем приветственную надпись -->
+                    <table id="clientTable">
+                        <thead>
+                            <tr>
+                                <th>Номер счета</th>
+                                <th>Фамилия</th>
+                                <th>Имя</th>
+                                <th>Отчество</th>
+                                <th>Дата рождения</th>
+                                <th>ИНН</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientListBody"></tbody>
+                    </table>
+                    <button id="change">Изменить</button>
+                </form>`;
 
-            // Выводим результат запроса для отладки
-            console.log('Результат запроса:', clientRows);
+            const clientListBody = helloForm.querySelector('#clientListBody');
 
-            // Отправляем данные о клиентах в виде JSON
-            return res.status(200).json(clientRows);
+            clientData.forEach(client => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${client.account_number}</td>
+                    <td>${client.last_name}</td>
+                    <td>${client.first_name}</td>
+                    <td>${client.middle_name || ''}</td>
+                    <td>${client.birth_date || ''}</td>
+                    <td>${client.INN || ''}</td>
+                    <td contenteditable="true">${client.status || ''}</td>
+                `;
+                clientListBody.appendChild(row);
+            });
+
+            document.body.appendChild(helloForm);
+
+            const changeButton = helloForm.querySelector('#change');
+            changeButton.addEventListener('click', function(event) {
+                event.preventDefault();
+
+                const tableRows = document.querySelectorAll('#clientTable tbody tr');
+                const statusChanges = [];
+
+                tableRows.forEach(row => {
+                    const accountNumber = row.cells[0].innerText;
+                    const newStatus = row.cells[6].innerText;
+
+                    statusChanges.push({ accountNumber, newStatus });
+                });
+
+                fetch('http://localhost:3000/change-status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(statusChanges)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Статусы успешно изменены');
+                        return response.json();
+                    } else {
+                        return response.text().then(errorMessage => {
+                            throw new Error(errorMessage);
+                        });
+                    }
+                })
+                .then(updatedClients => {
+                    updateTable(updatedClients);
+                })
+                .catch(error => {
+                    console.error('Ошибка при отправке запроса:', error);
+                });
+                
+            });
+        })
+        .catch(error => {
+            console.error('Произошла ошибка при получении данных о клиентах:', error.message);
         });
-    });
-});
 
+    function updateTable(updatedClients) {
+        const clientListBody = document.getElementById('clientListBody');
+        clientListBody.innerHTML = '';
 
-
-
-
-
-
-// Запуск сервера на порту 3000
-app.listen(PORT, () => {
-    console.log(`Сервер запущен на порту ${PORT}`);
+        updatedClients.forEach(client => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${client.account_number}</td>
+                <td>${client.last_name}</td>
+                <td>${client.first_name}</td>
+                <td>${client.middle_name || ''}</td>
+                <td>${client.birth_date || ''}</td>
+                <td>${client.INN || ''}</td>
+                <td contenteditable="true">${client.status || ''}</td>
+            `;
+            clientListBody.appendChild(row);
+        });
+    }
 });
