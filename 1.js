@@ -1,7 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 
 // Подключение к базе данных SQLite
-const db = new sqlite3.Database('bd1.db');
+const db = new sqlite3.Database('bd.db');
 
 // Создание таблицы clients
 db.serialize(() => {
@@ -54,7 +54,7 @@ db.serialize(() => {
 
     // Вставка данных в таблицу users
     const usersData = [
-        ['Иванов Иван Иванович', '2', '2'],
+        ['Иванов Иван Иванович', 'ivan', 'password1'],
         ['Петров Петр Петрович', 'petr', 'password2'],
         ['Артём', '1', '1']
     ];

@@ -110,6 +110,37 @@ app.get('/user/:userId/user_clients', (req, res) => {
 });
 
 
+app.post('/change-status', (req, res) => {
+    const statusChanges = req.body;
+    console.log('Полученные изменения статусов:', statusChanges);
+
+    const allowedStatus = ["В работе", "Отказ", "Сделка закрыта"];
+
+    // Итерация по каждому изменению статуса и выполнение соответствующего SQL-запроса для обновления данных в таблице
+    statusChanges.forEach(change => {
+        const { accountNumber, newStatus } = change;
+
+         // Проверка, является ли новый статус допустимым
+         if (!allowedStatus.includes(newStatus)) {
+            console.error(`Недопустимый статус: ${newStatus}`);
+            return res.status(400).send(`Недопустимый статус: ${newStatus}`);
+        }
+
+        const updateQuery = `UPDATE clients SET status = ? WHERE account_number = ?`;
+
+        db.run(updateQuery, [newStatus, accountNumber], function(err) {
+            if (err) {
+                console.error('Ошибка при выполнении SQL-запроса:', err.message);
+                res.status(500).send('Ошибка сервера');
+            } 
+            else {
+                console.log(`Статус клиента с номером счета ${accountNumber} успешно обновлен.`);
+            }
+        });
+    });
+
+    res.status(200).send('Статусы клиентов успешно обновлены');
+});
 
 
 

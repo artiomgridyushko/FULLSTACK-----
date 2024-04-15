@@ -78,3 +78,41 @@ body {
     margin-top: 10px;
     display: none;
 }
+
+/* Основные стили таблицы */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #ddd;
+    font-family: Arial, sans-serif;
+}
+
+/* Стили для заголовков таблицы */
+th {
+    background-color: #f2f2f2;
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+/* Стили для ячеек таблицы */
+td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+/* Стили для четных строк таблицы */
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+/* Стили при наведении на строку таблицы */
+tr:hover {
+    background-color: #ddd;
+}
+
+/* Стили для редактируемых ячеек таблицы */
+td[contenteditable="true"] {
+    background-color: #fff; /* Цвет фона для редактируемых ячеек */
+    cursor: text; /* Изменение курсора при наведении на редактируемые ячейки */
+}
